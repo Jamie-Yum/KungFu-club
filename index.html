@@ -177,9 +177,6 @@ textarea.finput{resize:none;}
       <button class="tab-btn active" onclick="showTab('intro')">소개</button>
       <button class="tab-btn" onclick="showTab('books')">독서</button>
     </div>
-    <select class="member-sel" id="myMemberSel" onchange="setMyMember(this.value)" title="나의 멤버 선택">
-      <option value="">내 멤버 선택</option>
-    </select>
   </div>
 </div>
 
@@ -436,15 +433,9 @@ async function load(){
     sb.from('gw_books').select('*').order('order_index').order('created_at',{ascending:false}),
   ]);
   members=mr.data||[];months=mnr.data||[];books=br.data||[];
-  populateSel();renderMiniGrid();renderOverview();
+  renderMiniGrid();renderOverview();
 }
 
-function populateSel(){
-  const s=document.getElementById('myMemberSel');
-  s.innerHTML='<option value="">내 멤버 선택</option>'+
-    members.map(m=>`<option value="${m.id}"${m.id===myId?' selected':''}>${m.avatar_emoji} ${m.name}</option>`).join('');
-}
-function setMyMember(v){myId=v;localStorage.setItem('gw_my',v);if(selMemberId)renderDetail(selMemberId);}
 
 function showTab(t){
   document.getElementById('tab-intro').style.display=t==='intro'?'block':'none';

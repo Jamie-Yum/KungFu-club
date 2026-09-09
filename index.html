@@ -511,7 +511,15 @@ function renderOverview(){
       <div class="mc-name">${m.name}</div>
       <div class="mc-nick">${m.nickname||'&nbsp;'}</div>
       <div class="chips">${chips||`<span class="chip" style="color:var(--text3);">0권</span>`}</div>
-      ${rb?`<div class="mc-reading">📖 ${rb.title}</div>`:''}
+      ${rb?`<div style="margin-top:10px;display:flex;align-items:center;gap:8px;text-align:left;">
+        ${rb.cover_url
+          ?`<img src="${rb.cover_url}" style="width:32px;height:46px;object-fit:cover;border-radius:3px;flex-shrink:0;">`
+          :`<div style="width:32px;height:46px;background:var(--surface2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;">📖</div>`}
+        <div style="min-width:0;">
+          <div style="font-size:9px;color:var(--reading);font-family:var(--mono);margin-bottom:2px;">읽는 중</div>
+          <div style="font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${rb.title}</div>
+        </div>
+      </div>`:''}
     </div>`;
   }).join('');
 }

@@ -290,6 +290,7 @@ textarea.finput{resize:none;}
         <button class="month-nav" onclick="changeMonth(1)">›</button>
         <span class="theme-chip" id="themeChip" style="display:none;"></span>
         <span class="leader-info" id="leaderInfo"></span>
+        <button class="add-btn" onclick="openMonthModal()" style="margin-left:auto;">✎ 편집</button>
       </div>
 
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
@@ -312,6 +313,27 @@ textarea.finput{resize:none;}
     </div>
   </div>
 
+</div>
+
+<!-- Month Modal -->
+<div class="overlay" id="monthOverlay" style="display:none;" onclick="if(event.target===this)closeMonthModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="monthModalTitle">월 정보 편집</div>
+    <div class="fgroup">
+      <label class="flabel">컨셉 / 테마</label>
+      <input class="finput" id="mTheme" placeholder="예: 전쟁·군사">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">리더</label>
+      <select class="fselect" id="mLeader">
+        <option value="">없음</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-p" onclick="saveMonth()" style="flex:1;">저장</button>
+      <button class="btn btn-g" onclick="closeMonthModal()">취소</button>
+    </div>
+  </div>
 </div>
 
 <!-- Book Modal -->
@@ -549,6 +571,31 @@ function renderDetail(memberId){
 }
 
 function openCommonModal(bookId){openModal(bookId,null,'common');}
+
+function openMonthModal(){
+  const md=months.find(m=>m.year===curY&&m.month===curM);
+  document.getElementById('monthModalTitle').textContent=`${curY}년 ${curM}월 편집`;
+  document.getElementById('mTheme').value=md?.theme||'';
+  const sel=document.getElementById('mLeader');
+  sel.innerHTML='<option value="">없음</option>'+members.map(m=>`<option value="${m.id}"${md?.leader_id===m.id?' selected':''}>${m.avatar_emoji} ${m.name}</option>`).join('');
+  document.getElementById('monthOverlay').style.display='flex';
+}
+function closeMonthModal(){document.getElementById('monthOverlay').style.display='none';}
+
+async function saveMonth(){
+  const theme=document.getElementById('mTheme').value.trim()||null;
+  const leader_id=document.getElementById('mLeader').value||null;
+  const existing=months.find(m=>m.year===curY&&m.month===curM);
+  const data={year:curY,month:curM,theme,leader_id};
+  const res=existing
+    ?await sb.from('gw_months').update(data).eq('id',existing.id)
+    :await sb.from('gw_months').insert(data);
+  if(res.error){showToast('저장 실패');return;}
+  showToast('저장됐어요 ✓');
+  closeMonthModal();
+  await load();
+  renderOverview();
+}
 
 function openModal(bookId,memberId,category){
   editBookId=bookId||null;

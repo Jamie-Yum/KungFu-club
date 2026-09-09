@@ -292,7 +292,10 @@ textarea.finput{resize:none;}
         <span class="leader-info" id="leaderInfo"></span>
       </div>
 
-      <div class="common-sec-label">● 공통 도서</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div class="common-sec-label" style="margin-bottom:0;">● 공통 도서</div>
+        <button class="add-btn" onclick="openCommonModal(null)" style="margin-left:0;">+ 추가/편집</button>
+      </div>
       <div class="common-books" id="commonBooksList">
         <div style="color:var(--text3);font-size:13px;">불러오는 중...</div>
       </div>
@@ -455,11 +458,11 @@ function renderOverview(){
   tc.textContent=md?.theme||'';tc.style.display=md?.theme?'':'none';
   document.getElementById('leaderInfo').innerHTML=leader?`리더: ${leader.name}`:'';
 
-  // Common books (deduplicated by title)
-  const commons=[...new Map(mBooks.filter(b=>b.category==='common').map(b=>[b.title,b])).values()];
+  // Common books (member_id === null 인 것만)
+  const commons=mBooks.filter(b=>b.category==='common'&&!b.member_id);
   const cl=document.getElementById('commonBooksList');
   cl.innerHTML=commons.length?commons.map(b=>`
-    <div class="common-card">
+    <div class="common-card" style="cursor:pointer;" onclick="openCommonModal('${b.id}')">
       ${b.cover_url?`<img class="common-cover" src="${b.cover_url}" onerror="this.style.display='none'">`:`<div class="common-cover-ph">📖</div>`}
       <div style="flex:1;min-width:0;">
         <div class="common-badge">공통도서</div>
@@ -508,13 +511,13 @@ function renderDetail(memberId){
   const mb=books.filter(b=>b.member_id===memberId&&b.year===curY&&b.month===curM);
   const isMe=myId===memberId;
 
-  const secs=['common','concept','free'].map(cat=>{
+  const secs=['concept','free'].map(cat=>{
     const cb=mb.filter(b=>b.category===cat);
     return`<div class="book-sec">
       <div class="book-sec-hdr">
         <span class="book-sec-label" style="color:${CAT_COLOR[cat]};">● ${CAT_LABEL[cat]}</span>
         <span class="book-sec-count">${cb.length}권</span>
-        ${isMe?`<button class="add-btn" onclick="openModal(null,'${memberId}','${cat}')">+ 추가</button>`:''}
+        <button class="add-btn" onclick="openModal(null,'${memberId}','${cat}')">+ 추가</button>
       </div>
       <div class="book-list">
         ${cb.length?cb.map(b=>`
@@ -545,6 +548,8 @@ function renderDetail(memberId){
     ${secs}`;
 }
 
+function openCommonModal(bookId){openModal(bookId,null,'common');}
+
 function openModal(bookId,memberId,category){
   editBookId=bookId||null;
   modalMemberId=memberId||selMemberId;
@@ -573,8 +578,9 @@ function closeModal(){document.getElementById('bookOverlay').style.display='none
 async function saveBook(){
   const title=document.getElementById('fTitle').value.trim();
   if(!title){showToast('제목을 입력해주세요');return;}
-  const mid=modalMemberId||myId;
-  if(!mid){showToast('멤버를 먼저 선택해주세요');return;}
+  const cat=document.getElementById('fCategory').value;
+  const mid=cat==='common'?null:(modalMemberId||myId);
+  if(cat!=='common'&&!mid){showToast('멤버를 먼저 선택해주세요');return;}
   const data={
     member_id:mid,title,
     author:document.getElementById('fAuthor').value.trim()||null,
